@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cilantro/registration/icp_common_instances.hpp>
+
 #include <Eigen/Dense>
 
 namespace cilantro {
@@ -80,6 +82,12 @@ public:
       icp_instance.updateCorrespondences();
       // Update transform_ and last_delta_norm_ based on correspondences_
       icp_instance.updateEstimate();
+
+    if (icp_instance.estimate_callback != nullptr) {
+      // This will not compile for other types of ICP solvers until it is properly templated
+      // Currently only used for: cilantro::SimplePointToPointMetricRigidICP3f
+      icp_instance.estimate_callback(icp_instance.getTransform());
+    }
 
       iterations_++;
       if (last_delta_norm_ < convergence_tol_) break;

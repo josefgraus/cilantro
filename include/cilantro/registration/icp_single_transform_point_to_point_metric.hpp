@@ -32,6 +32,13 @@ public:
     this->transform_init_.setIdentity();
   }
 
+  void setEstimateCallback(std::function<void(cilantro::RigidTransform3f)> callback) {
+    estimate_callback = callback;
+  }
+
+protected:
+  std::function<void(cilantro::RigidTransform3f)> estimate_callback;
+
 private:
   ConstVectorSetMatrixMap<typename TransformT::Scalar, TransformT::Dim> dst_points_;
   ConstVectorSetMatrixMap<typename TransformT::Scalar, TransformT::Dim> src_points_;

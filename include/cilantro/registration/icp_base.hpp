@@ -77,17 +77,23 @@ public:
     last_delta_norm_ = std::numeric_limits<PointScalar>::infinity();
     icp_instance.initializeComputation();
 
-    while (iterations_ < max_iterations_) {
+    std::optional<RigidTransform3f> predicted_solution = std::nullopt;
+    while (iterations_ < max_iterations_ /*&& predicted_solution == std::nullopt*/) {
       // Update correspondences_
       icp_instance.updateCorrespondences();
       // Update transform_ and last_delta_norm_ based on correspondences_
       icp_instance.updateEstimate();
 
-    if (icp_instance.estimate_callback != nullptr) {
-      // This will not compile for other types of ICP solvers until it is properly templated
-      // Currently only used for: cilantro::SimplePointToPointMetricRigidICP3f
-      icp_instance.estimate_callback(icp_instance.getTransform());
-    }
+      if (icp_instance.estimate_callback != nullptr) {
+        // This will not compile for other types of ICP solvers until it is properly templated
+        // Currently only used for: cilantro::SimplePointToPointMetricRigidICP3f
+        predicted_solution = icp_instance.estimate_callback(icp_instance.getTransform());
+
+        if (predicted_solution != std::nullopt) {
+          transform_ = *predicted_solution;
+          last_delta_norm_ = convergence_tol_ - 0.1f;
+        }
+      }
 
       iterations_++;
       if (last_delta_norm_ < convergence_tol_) break;
